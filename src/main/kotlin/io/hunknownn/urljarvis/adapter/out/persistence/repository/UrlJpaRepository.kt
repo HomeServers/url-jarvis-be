@@ -13,6 +13,6 @@ interface UrlJpaRepository : JpaRepository<UrlJpaEntity, Long> {
     fun findByUserIdAndUrl(userId: Long, url: String): UrlJpaEntity?
 
     @Modifying
-    @Query("UPDATE UrlJpaEntity u SET u.status = :status, u.updatedAt = CURRENT_TIMESTAMP WHERE u.id = :id")
-    fun updateStatus(id: Long, status: io.hunknownn.urljarvis.domain.url.CrawlStatus)
+    @Query("UPDATE UrlJpaEntity u SET u.status = :status, u.failReason = :failReason, u.updatedAt = CURRENT_TIMESTAMP WHERE u.id = :id")
+    fun updateStatus(id: Long, status: io.hunknownn.urljarvis.domain.url.CrawlStatus, failReason: String? = null)
 }

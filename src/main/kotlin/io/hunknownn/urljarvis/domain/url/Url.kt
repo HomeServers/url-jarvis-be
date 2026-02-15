@@ -11,6 +11,7 @@ data class Url(
     val thumbnail: String? = null,
     val domain: String,
     val status: CrawlStatus = CrawlStatus.PENDING,
+    val failReason: String? = null,
     val createdAt: LocalDateTime = LocalDateTime.now(),
     val updatedAt: LocalDateTime = LocalDateTime.now()
 )

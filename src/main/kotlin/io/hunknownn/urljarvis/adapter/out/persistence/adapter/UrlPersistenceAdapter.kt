@@ -42,6 +42,6 @@ class UrlPersistenceAdapter(
         urlJpaRepository.deleteById(id)
 
     @Transactional
-    override fun updateStatus(id: Long, status: CrawlStatus) =
-        urlJpaRepository.updateStatus(id, status)
+    override fun updateStatus(id: Long, status: CrawlStatus, failReason: String?) =
+        urlJpaRepository.updateStatus(id, status, failReason)
 }

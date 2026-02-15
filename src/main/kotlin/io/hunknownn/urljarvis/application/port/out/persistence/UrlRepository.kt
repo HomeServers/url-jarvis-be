@@ -12,5 +12,5 @@ interface UrlRepository {
     fun findByUserId(userId: Long, pageable: Pageable): Page<Url>
     fun findByIdAndUserId(id: Long, userId: Long): Url?
     fun deleteById(id: Long)
-    fun updateStatus(id: Long, status: CrawlStatus)
+    fun updateStatus(id: Long, status: CrawlStatus, failReason: String? = null)
 }

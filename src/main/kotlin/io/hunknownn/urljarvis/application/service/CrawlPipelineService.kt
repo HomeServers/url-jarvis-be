@@ -1,5 +1,6 @@
 package io.hunknownn.urljarvis.application.service
 
+import io.hunknownn.urljarvis.adapter.out.crawling.CrawlFailedException
 import io.hunknownn.urljarvis.application.port.out.crawling.WebCrawler
 import io.hunknownn.urljarvis.application.port.out.embedding.EmbeddingClient
 import io.hunknownn.urljarvis.application.port.out.persistence.UrlChunkRepository
@@ -103,11 +104,15 @@ class CrawlPipelineService(
                 }
                 log.info("[DB 저장] {}ms - {}건", saveTime, textChunks.size)
 
-                urlRepository.updateStatus(urlId, CrawlStatus.CRAWLED)
+                urlRepository.updateStatus(urlId, CrawlStatus.CRAWLED, failReason = null)
 
             } catch (e: Exception) {
                 log.error("Crawl pipeline failed for URL: {}", url.url, e)
-                urlRepository.updateStatus(urlId, CrawlStatus.FAILED)
+                val crawlFailure = generateSequence<Throwable>(e) { it.cause }
+                    .filterIsInstance<CrawlFailedException>()
+                    .firstOrNull()
+                val failReason = crawlFailure?.toUserMessage() ?: "크롤링 처리 중 오류가 발생했습니다"
+                urlRepository.updateStatus(urlId, CrawlStatus.FAILED, failReason)
             }
         }
         log.info("[파이프라인 총합] {}ms - {}", totalTime, url.url)

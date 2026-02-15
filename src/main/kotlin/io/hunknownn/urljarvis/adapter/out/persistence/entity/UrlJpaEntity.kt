@@ -40,6 +40,9 @@ class UrlJpaEntity(
     @Column(nullable = false, length = 20)
     val status: CrawlStatus = CrawlStatus.PENDING,
 
+    @Column(name = "fail_reason", columnDefinition = "TEXT")
+    val failReason: String? = null,
+
     @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
 

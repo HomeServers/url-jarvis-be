@@ -13,6 +13,7 @@ object UrlMapper {
         thumbnail = entity.thumbnail,
         domain = entity.domain,
         status = entity.status,
+        failReason = entity.failReason,
         createdAt = entity.createdAt,
         updatedAt = entity.updatedAt
     )
@@ -26,6 +27,7 @@ object UrlMapper {
         thumbnail = domain.thumbnail,
         domain = domain.domain,
         status = domain.status,
+        failReason = domain.failReason,
         createdAt = domain.createdAt,
         updatedAt = domain.updatedAt
     )

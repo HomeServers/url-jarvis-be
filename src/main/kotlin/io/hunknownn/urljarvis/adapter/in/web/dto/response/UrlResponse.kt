@@ -11,6 +11,7 @@ data class UrlResponse(
     val description: String?,
     val domain: String,
     val status: CrawlStatus,
+    val failReason: String?,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime
 ) {
@@ -22,6 +23,7 @@ data class UrlResponse(
             description = url.description,
             domain = url.domain,
             status = url.status,
+            failReason = url.failReason,
             createdAt = url.createdAt,
             updatedAt = url.updatedAt
         )
