@@ -22,6 +22,7 @@ CREATE TABLE urls (
     url             TEXT NOT NULL,
     title           VARCHAR(500),
     description     TEXT,
+    thumbnail       TEXT,
     domain          VARCHAR(255) NOT NULL,
     status          VARCHAR(20) NOT NULL DEFAULT 'PENDING',
     created_at      TIMESTAMP NOT NULL DEFAULT NOW(),
