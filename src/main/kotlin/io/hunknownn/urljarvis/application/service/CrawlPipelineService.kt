@@ -60,6 +60,7 @@ class CrawlPipelineService(
                     url.copy(
                         title = crawlResult.title,
                         description = crawlResult.description,
+                        thumbnail = crawlResult.ogImage,
                         status = CrawlStatus.CRAWLING
                     )
                 )
@@ -80,8 +81,7 @@ class CrawlPipelineService(
                 // 4. 임베딩 (10개씩 배치 처리하여 타임아웃 방지)
                 val embeddings: List<FloatArray>
                 val embedTime = measureTimeMillis {
-                    val prefixedChunks = textChunks.map { "passage: $it" }
-                    val batches = prefixedChunks.chunked(10)
+                    val batches = textChunks.chunked(10)
                     val totalBatches = batches.size
                     embeddings = batches.flatMapIndexed { index, batch ->
                         embeddingClient.embedBatch(batch, batchIndex = index + 1, totalBatches = totalBatches)

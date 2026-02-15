@@ -2,6 +2,7 @@ package io.hunknownn.urljarvis.adapter.out.embedding
 
 import io.hunknownn.urljarvis.application.port.out.embedding.EmbeddingClient
 import io.hunknownn.urljarvis.infrastructure.config.EmbeddingProperties
+import io.hunknownn.urljarvis.infrastructure.config.OpenAiProperties
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
@@ -9,15 +10,13 @@ import org.springframework.web.reactive.function.client.WebClient
 import kotlin.system.measureTimeMillis
 
 /**
- * 외부 임베딩 서버(intfloat/multilingual-e5-small)와 REST 통신하는 어댑터.
- *
- * 호출자(CrawlPipelineService, SearchService)가 e5 prefix("query: ", "passage: ")를
- * 직접 추가한 텍스트를 전달해야 한다.
+ * OpenAI text-embedding-3-small API를 호출하는 임베딩 어댑터.
  */
 @Component
 class EmbeddingRestAdapter(
     private val webClient: WebClient,
-    private val embeddingProperties: EmbeddingProperties
+    private val embeddingProperties: EmbeddingProperties,
+    private val openAiProperties: OpenAiProperties
 ) : EmbeddingClient {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -28,31 +27,35 @@ class EmbeddingRestAdapter(
     @Suppress("UNCHECKED_CAST")
     override fun embedBatch(texts: List<String>, batchIndex: Int, totalBatches: Int): List<FloatArray> {
         val batchLabel = if (totalBatches > 0) "[배치 $batchIndex/$totalBatches] " else ""
-        log.info("임베딩 요청: {}{}건 (서버: {})", batchLabel, texts.size, embeddingProperties.baseUrl)
+        log.info("임베딩 요청: {}{}건 (model: {})", batchLabel, texts.size, embeddingProperties.model)
 
         val response: Map<*, *>
         val elapsed = measureTimeMillis {
             response = webClient.post()
-                .uri("${embeddingProperties.baseUrl}/embed")
+                .uri("https://api.openai.com/v1/embeddings")
                 .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer ${openAiProperties.apiKey}")
                 .bodyValue(
                     mapOf(
-                        "texts" to texts,
+                        "input" to texts,
                         "model" to embeddingProperties.model
                     )
                 )
                 .retrieve()
                 .bodyToMono(Map::class.java)
-                .block() ?: throw RuntimeException("Embedding server returned empty response")
+                .block() ?: throw RuntimeException("OpenAI embedding API returned empty response")
         }
 
-        val embeddings = response["embeddings"] as? List<List<Number>>
-            ?: throw RuntimeException("No embeddings in response")
+        val data = response["data"] as? List<Map<String, Any>>
+            ?: throw RuntimeException("No data in OpenAI embedding response")
+
+        val embeddings = data.map { item ->
+            val vector = item["embedding"] as List<Number>
+            FloatArray(vector.size) { i -> vector[i].toFloat() }
+        }
 
         log.info("임베딩 완료: {}{}건 ({}차원) - {}ms (건당 {}ms)", batchLabel, embeddings.size, embeddings.firstOrNull()?.size ?: 0, elapsed, elapsed / texts.size)
 
-        return embeddings.map { vector ->
-            FloatArray(vector.size) { i -> vector[i].toFloat() }
-        }
+        return embeddings
     }
 }

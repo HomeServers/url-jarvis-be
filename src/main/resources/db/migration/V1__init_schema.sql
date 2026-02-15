@@ -37,7 +37,7 @@ CREATE TABLE url_chunks (
     url_id          BIGINT NOT NULL REFERENCES urls(id) ON DELETE CASCADE,
     content         TEXT NOT NULL,
     chunk_index     INT NOT NULL,
-    embedding       vector(384) NOT NULL,
+    embedding       vector(1536) NOT NULL,
     created_at      TIMESTAMP NOT NULL DEFAULT NOW()
 );
 

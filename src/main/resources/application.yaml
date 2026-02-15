@@ -43,9 +43,8 @@ url-jarvis:
     api-key: ${FIRECRAWL_API_KEY}
     base-url: https://api.firecrawl.dev/v1
   embedding:
-    base-url: ${EMBEDDING_SERVER_URL:http://localhost:8081}
-    model: intfloat/multilingual-e5-small
-    dimensions: 384
+    model: text-embedding-3-small
+    dimensions: 1536
   openai:
     api-key: ${OPENAI_API_KEY}
     model: gpt-4o-mini

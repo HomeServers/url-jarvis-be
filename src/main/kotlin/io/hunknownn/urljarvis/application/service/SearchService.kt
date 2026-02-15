@@ -28,7 +28,7 @@ class SearchService(
 
         val queryEmbedding: FloatArray
         val embedTime = measureTimeMillis {
-            queryEmbedding = embeddingClient.embed("query: $query")
+            queryEmbedding = embeddingClient.embed(query)
         }
         log.info("[임베딩] {}ms", embedTime)
 
@@ -46,7 +46,7 @@ class SearchService(
 
         val queryEmbedding: FloatArray
         val embedTime = measureTimeMillis {
-            queryEmbedding = embeddingClient.embed("query: $query")
+            queryEmbedding = embeddingClient.embed(query)
         }
         log.info("[임베딩] {}ms", embedTime)
 
@@ -68,8 +68,12 @@ class SearchService(
             )
         }
 
-        val context = results.mapIndexed { i, r ->
-            "[출처 ${i + 1}]\nURL: ${r.url}\n제목: ${r.title ?: "없음"}\n내용: ${r.matchedChunkContent}"
+        val context = results.groupBy { it.urlId }.entries.mapIndexed { i, (_, chunks) ->
+            val first = chunks.first()
+            val contents = chunks.mapIndexed { j, c ->
+                "${j + 1}. ${c.matchedChunkContent}"
+            }.joinToString("\n")
+            "[출처 ${i + 1}]\nURL: ${first.url}\n제목: ${first.title ?: "없음"}\n\n$contents"
         }.joinToString("\n\n")
 
         val answer: String
