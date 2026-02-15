@@ -52,12 +52,14 @@ class FirecrawlAdapter(
         val metadata = data["metadata"] as? Map<String, Any> ?: emptyMap()
         val markdown = data["markdown"] as? String ?: ""
 
-        log.info("Firecrawl 완료: {} (title={}, markdown={}자)", url, metadata["title"], markdown.length)
+        val ogImage = metadata["og:image"] as? String ?: metadata["ogImage"] as? String
+        log.info("Firecrawl 완료: {} (title={}, ogImage={}, markdown={}자)", url, metadata["title"], ogImage != null, markdown.length)
 
         return CrawlResult(
             markdown = markdown,
             title = metadata["title"] as? String,
-            description = metadata["description"] as? String
+            description = metadata["description"] as? String,
+            ogImage = ogImage
         )
     }
 }

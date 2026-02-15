@@ -10,6 +10,7 @@ data class SearchResponse(
         val urlId: Long,
         val url: String,
         val title: String?,
+        val thumbnail: String?,
         val domain: String,
         val matchedContent: String,
         val similarity: Double
@@ -23,6 +24,7 @@ data class SearchResponse(
                     urlId = it.urlId,
                     url = it.url,
                     title = it.title,
+                    thumbnail = it.thumbnail,
                     domain = it.domain,
                     matchedContent = it.matchedChunkContent,
                     similarity = it.similarity

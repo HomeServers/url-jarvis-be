@@ -49,7 +49,7 @@ class UrlChunkPersistenceAdapter(
 
     override fun searchByUserId(userId: Long, queryEmbedding: FloatArray, topK: Int): List<SearchResult> {
         val sql = """
-            SELECT u.id AS url_id, u.url, u.title, u.domain, c.content,
+            SELECT u.id AS url_id, u.url, u.title, u.thumbnail, u.domain, c.content,
                    1 - (c.embedding <=> ?::vector) AS similarity
             FROM url_chunks c
             JOIN urls u ON c.url_id = u.id
@@ -64,6 +64,7 @@ class UrlChunkPersistenceAdapter(
                 urlId = rs.getLong("url_id"),
                 url = rs.getString("url"),
                 title = rs.getString("title"),
+                thumbnail = rs.getString("thumbnail"),
                 domain = rs.getString("domain"),
                 matchedChunkContent = rs.getString("content"),
                 similarity = rs.getDouble("similarity")
@@ -73,7 +74,7 @@ class UrlChunkPersistenceAdapter(
 
     override fun searchByUrlId(urlId: Long, queryEmbedding: FloatArray, topK: Int): List<SearchResult> {
         val sql = """
-            SELECT u.id AS url_id, u.url, u.title, u.domain, c.content,
+            SELECT u.id AS url_id, u.url, u.title, u.thumbnail, u.domain, c.content,
                    1 - (c.embedding <=> ?::vector) AS similarity
             FROM url_chunks c
             JOIN urls u ON c.url_id = u.id
@@ -88,6 +89,7 @@ class UrlChunkPersistenceAdapter(
                 urlId = rs.getLong("url_id"),
                 url = rs.getString("url"),
                 title = rs.getString("title"),
+                thumbnail = rs.getString("thumbnail"),
                 domain = rs.getString("domain"),
                 matchedChunkContent = rs.getString("content"),
                 similarity = rs.getDouble("similarity")

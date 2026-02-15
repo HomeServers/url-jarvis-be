@@ -30,6 +30,9 @@ class UrlJpaEntity(
     @Column(columnDefinition = "TEXT")
     val description: String? = null,
 
+    @Column(columnDefinition = "TEXT")
+    val thumbnail: String? = null,
+
     @Column(nullable = false, length = 255)
     val domain: String,
 

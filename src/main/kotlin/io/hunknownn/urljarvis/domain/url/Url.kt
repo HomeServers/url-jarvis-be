@@ -8,6 +8,7 @@ data class Url(
     val url: String,
     val title: String? = null,
     val description: String? = null,
+    val thumbnail: String? = null,
     val domain: String,
     val status: CrawlStatus = CrawlStatus.PENDING,
     val createdAt: LocalDateTime = LocalDateTime.now(),
