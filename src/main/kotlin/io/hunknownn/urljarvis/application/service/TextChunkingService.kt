@@ -16,8 +16,11 @@ class TextChunkingService(
     fun chunk(text: String): List<String> {
         if (text.isBlank()) return emptyList()
 
+        val cleaned = cleanMarkdown(text)
+        if (cleaned.isBlank()) return emptyList()
+
         // 1차: 문단 단위 병합 (chunkSize 이내로 문단들을 합침)
-        val paragraphs = text.split("\n\n").filter { it.isNotBlank() }
+        val paragraphs = cleaned.split("\n\n").filter { it.isNotBlank() }
         val chunks = mutableListOf<String>()
 
         val buffer = StringBuilder()
@@ -41,6 +44,18 @@ class TextChunkingService(
         // 2차: chunkSize * 1.5 초과 청크는 문장 단위로 재분할
         return chunks.flatMap { splitLargeChunk(it) }
             .filter { it.isNotBlank() }
+    }
+
+    /** 이미지 태그, CDN URL, 연속 공백 등 임베딩에 불필요한 노이즈 제거 */
+    private fun cleanMarkdown(text: String): String {
+        return text
+            .replace(Regex("!\\[.*?]\\(.*?\\)"), "")          // 이미지 태그: ![alt](url)
+            .replace(Regex("\\[\\s*]\\(.*?\\)"), "")           // 빈 링크: [](url)
+            .replace(Regex("https?://\\S*coupangcdn\\.com\\S*"), "") // 쿠팡 CDN URL
+            .replace(Regex("https?://\\S*\\.png\\S*"), "")     // .png URL
+            .replace(Regex("https?://\\S*\\.jpg\\S*"), "")     // .jpg URL
+            .replace(Regex("\\n{3,}"), "\n\n")                 // 연속 줄바꿈 정리
+            .replace(Regex(" {2,}"), " ")                      // 연속 공백 정리
     }
 
     private fun splitLargeChunk(chunk: String): List<String> {
