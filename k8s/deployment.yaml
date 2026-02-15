@@ -28,20 +28,24 @@ spec:
               value: prod
           resources:
             requests:
-              memory: 256Mi
+              memory: 512Mi
               cpu: 250m
             limits:
-              memory: 512Mi
-              cpu: 500m
+              memory: 1Gi
+              cpu: "1"
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            failureThreshold: 20
+            periodSeconds: 5
           readinessProbe:
             httpGet:
               path: /actuator/health
               port: 8080
-            initialDelaySeconds: 30
             periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /actuator/health
               port: 8080
-            initialDelaySeconds: 60
             periodSeconds: 15
