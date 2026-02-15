@@ -69,7 +69,7 @@ class SearchService(
         }
 
         val context = results.mapIndexed { i, r ->
-            "[출처 ${i + 1}: ${r.title ?: r.url}]\n${r.matchedChunkContent}"
+            "[출처 ${i + 1}]\nURL: ${r.url}\n제목: ${r.title ?: "없음"}\n내용: ${r.matchedChunkContent}"
         }.joinToString("\n\n")
 
         val answer: String

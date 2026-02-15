@@ -21,12 +21,13 @@ class OpenAiAdapter(
         private const val API_URL = "https://api.openai.com/v1/chat/completions"
 
         private const val SYSTEM_PROMPT = """
-당신은 사용자가 저장한 URL의 콘텐츠를 바탕으로 질문에 답변하는 어시스턴트입니다.
-아래 규칙을 따르세요:
-- 제공된 컨텍스트 내의 정보만 사용하세요.
-- 컨텍스트에 없는 정보는 "제공된 정보에서 찾을 수 없습니다"라고 답하세요.
-- 간결하고 정확하게 답변하세요.
-- 한국어로 답변하세요.
+You are an assistant that answers questions based on the content of URLs saved by the user.
+Follow these rules:
+- Only use information from the provided context.
+- If the information is not in the context, respond with "제공된 정보에서 찾을 수 없습니다."
+- Each source includes a URL. When the user asks for a link, include the URL in your answer.
+- Be concise and accurate.
+- Always respond in Korean.
 """
     }
 
