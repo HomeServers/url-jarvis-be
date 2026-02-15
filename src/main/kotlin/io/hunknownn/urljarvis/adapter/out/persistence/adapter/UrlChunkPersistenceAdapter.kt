@@ -5,6 +5,7 @@ import io.hunknownn.urljarvis.adapter.out.persistence.repository.UrlChunkJpaRepo
 import io.hunknownn.urljarvis.application.port.out.persistence.UrlChunkRepository
 import io.hunknownn.urljarvis.domain.search.SearchResult
 import io.hunknownn.urljarvis.domain.url.UrlChunk
+import org.slf4j.LoggerFactory
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -22,8 +23,11 @@ class UrlChunkPersistenceAdapter(
     private val jdbcTemplate: JdbcTemplate
 ) : UrlChunkRepository {
 
+    private val log = LoggerFactory.getLogger(javaClass)
+
     @Transactional
     override fun saveAll(chunks: List<UrlChunk>) {
+        log.info("청크 저장: {}건 (urlId={})", chunks.size, chunks.firstOrNull()?.urlId)
         val sql = """
             INSERT INTO url_chunks (url_id, content, chunk_index, embedding, created_at)
             VALUES (?, ?, ?, ?::vector, NOW())
@@ -39,6 +43,7 @@ class UrlChunkPersistenceAdapter(
 
     @Transactional
     override fun deleteByUrlId(urlId: Long) {
+        log.info("청크 삭제: urlId={}", urlId)
         urlChunkJpaRepository.deleteByUrlId(urlId)
     }
 

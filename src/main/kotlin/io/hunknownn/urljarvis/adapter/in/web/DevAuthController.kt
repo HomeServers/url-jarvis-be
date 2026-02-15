@@ -6,6 +6,7 @@ import io.hunknownn.urljarvis.application.port.out.persistence.UserRepository
 import io.hunknownn.urljarvis.domain.user.OAuthProvider
 import io.hunknownn.urljarvis.domain.user.User
 import io.hunknownn.urljarvis.infrastructure.security.JwtTokenProvider
+import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -20,8 +21,11 @@ class DevAuthController(
     private val userRepository: UserRepository,
     private val jwtTokenProvider: JwtTokenProvider
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     @PostMapping("/dev-token")
     fun issueDevToken(): ResponseEntity<ApiResponse<TokenResponse>> {
+        log.info("Dev 토큰 발급 요청")
         val user = userRepository.findByProviderAndProviderId(OAuthProvider.GOOGLE, "dev-user-001")
             ?: userRepository.save(
                 User(
@@ -37,6 +41,7 @@ class DevAuthController(
             refreshToken = jwtTokenProvider.generateRefreshToken(user.id)
         )
 
+        log.info("Dev 토큰 발급 완료: userId={}", user.id)
         return ResponseEntity.ok(ApiResponse.ok(tokenPair))
     }
 }

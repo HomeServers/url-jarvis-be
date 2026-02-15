@@ -2,6 +2,7 @@ package io.hunknownn.urljarvis.adapter.out.embedding
 
 import io.hunknownn.urljarvis.application.port.out.embedding.EmbeddingClient
 import io.hunknownn.urljarvis.infrastructure.config.EmbeddingProperties
+import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
@@ -18,11 +19,15 @@ class EmbeddingRestAdapter(
     private val embeddingProperties: EmbeddingProperties
 ) : EmbeddingClient {
 
+    private val log = LoggerFactory.getLogger(javaClass)
+
     override fun embed(text: String): FloatArray =
         embedBatch(listOf(text)).first()
 
     @Suppress("UNCHECKED_CAST")
     override fun embedBatch(texts: List<String>): List<FloatArray> {
+        log.info("임베딩 요청: {}건 (서버: {})", texts.size, embeddingProperties.baseUrl)
+
         val response = webClient.post()
             .uri("${embeddingProperties.baseUrl}/embed")
             .contentType(MediaType.APPLICATION_JSON)
@@ -38,6 +43,8 @@ class EmbeddingRestAdapter(
 
         val embeddings = response["embeddings"] as? List<List<Number>>
             ?: throw RuntimeException("No embeddings in response")
+
+        log.info("임베딩 완료: {}건 ({}차원)", embeddings.size, embeddings.firstOrNull()?.size ?: 0)
 
         return embeddings.map { vector ->
             FloatArray(vector.size) { i -> vector[i].toFloat() }

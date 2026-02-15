@@ -2,6 +2,7 @@ package io.hunknownn.urljarvis.adapter.out.llm
 
 import io.hunknownn.urljarvis.application.port.out.llm.LlmClient
 import io.hunknownn.urljarvis.infrastructure.config.OpenAiProperties
+import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
@@ -29,8 +30,12 @@ class OpenAiAdapter(
 """
     }
 
+    private val log = LoggerFactory.getLogger(javaClass)
+
     @Suppress("UNCHECKED_CAST")
     override fun generate(query: String, context: String): String {
+        log.info("OpenAI 요청: model={}, query='{}', context={}자", openAiProperties.model, query, context.length)
+
         val requestBody = mapOf(
             "model" to openAiProperties.model,
             "max_tokens" to openAiProperties.maxTokens,
@@ -54,7 +59,9 @@ class OpenAiAdapter(
         val message = choices.first()["message"] as? Map<String, Any>
             ?: throw RuntimeException("No message in OpenAI choice")
 
-        return message["content"] as? String ?: ""
+        val answer = message["content"] as? String ?: ""
+        log.info("OpenAI 응답: {}자", answer.length)
+        return answer
     }
 
     private fun buildUserMessage(query: String, context: String): String =
