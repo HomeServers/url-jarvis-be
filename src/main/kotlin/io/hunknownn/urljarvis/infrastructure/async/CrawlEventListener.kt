@@ -12,7 +12,7 @@ class CrawlEventListener(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    @Async
+    @Async("crawlExecutor")
     @EventListener
     fun handleCrawlRequested(event: CrawlRequestedEvent) {
         log.info("Received crawl event for URL ID: {}", event.urlId)

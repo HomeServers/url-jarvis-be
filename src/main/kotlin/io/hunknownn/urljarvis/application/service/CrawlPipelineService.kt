@@ -58,10 +58,12 @@ class CrawlPipelineService(
                 return
             }
 
-            // 4. 임베딩
+            // 4. 임베딩 (10개씩 배치 처리하여 타임아웃 방지)
             // e5 모델 규칙: 검색 대상 문서는 "passage: " prefix, 질의는 "query: " prefix
             val prefixedChunks = textChunks.map { "passage: $it" }
-            val embeddings = embeddingClient.embedBatch(prefixedChunks)
+            val embeddings = prefixedChunks.chunked(10).flatMap { batch ->
+                embeddingClient.embedBatch(batch)
+            }
 
             // 5. 벡터 저장
             val urlChunks = textChunks.mapIndexed { index, content ->
