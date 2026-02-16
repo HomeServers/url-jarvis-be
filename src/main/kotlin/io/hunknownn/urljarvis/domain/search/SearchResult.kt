@@ -7,5 +7,5 @@ data class SearchResult(
     val thumbnail: String?,
     val domain: String,
     val matchedChunkContent: String,
-    val similarity: Double
+    val score: Double
 )

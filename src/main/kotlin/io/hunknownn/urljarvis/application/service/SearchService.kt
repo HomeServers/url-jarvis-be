@@ -11,8 +11,8 @@ import org.springframework.stereotype.Service
 import kotlin.system.measureTimeMillis
 
 /**
- * 시맨틱 검색 서비스.
- * 쿼리 임베딩 → pgvector 유사도 검색 → top-K 청크 컨텍스트 구성 → LLM 답변 생성.
+ * 하이브리드 검색 서비스.
+ * 쿼리 임베딩 → 벡터 + 키워드 RRF 하이브리드 검색 → top-K 청크 컨텍스트 구성 → LLM 답변 생성.
  */
 @Service
 class SearchService(
@@ -34,9 +34,9 @@ class SearchService(
 
         val results: List<SearchResult>
         val searchTime = measureTimeMillis {
-            results = urlChunkRepository.searchByUserId(userId, queryEmbedding, topK)
+            results = urlChunkRepository.searchByUserId(userId, queryEmbedding, query, topK)
         }
-        log.info("[벡터 검색] {}ms - {}건 (최고 유사도: {})", searchTime, results.size, results.firstOrNull()?.similarity ?: 0.0)
+        log.info("[하이브리드 검색] {}ms - {}건 (최고 점수: {})", searchTime, results.size, results.firstOrNull()?.score ?: 0.0)
 
         return buildAnswer(query, results)
     }
@@ -52,9 +52,9 @@ class SearchService(
 
         val results: List<SearchResult>
         val searchTime = measureTimeMillis {
-            results = urlChunkRepository.searchByUrlId(urlId, queryEmbedding, topK)
+            results = urlChunkRepository.searchByUrlId(urlId, queryEmbedding, query, topK)
         }
-        log.info("[벡터 검색] {}ms - {}건 (최고 유사도: {})", searchTime, results.size, results.firstOrNull()?.similarity ?: 0.0)
+        log.info("[하이브리드 검색] {}ms - {}건 (최고 점수: {})", searchTime, results.size, results.firstOrNull()?.score ?: 0.0)
 
         return buildAnswer(query, results)
     }
@@ -68,7 +68,14 @@ class SearchService(
             )
         }
 
-        val context = results.groupBy { it.urlId }.entries.mapIndexed { i, (_, chunks) ->
+        val maxScore = results.maxOf { it.score }
+        val normalizedResults = if (maxScore > 0) {
+            results.map { it.copy(score = it.score / maxScore) }
+        } else {
+            results
+        }
+
+        val context = normalizedResults.groupBy { it.urlId }.entries.mapIndexed { i, (_, chunks) ->
             val first = chunks.first()
             val contents = chunks.mapIndexed { j, c ->
                 "${j + 1}. ${c.matchedChunkContent}"
@@ -81,8 +88,8 @@ class SearchService(
             answer = llmClient.generate(query, context)
         }
         log.info("[LLM] {}ms - answer={}자", llmTime, answer.length)
-        log.info("[검색 완료] query='{}', sources={}건", query, results.size)
+        log.info("[검색 완료] query='{}', sources={}건", query, normalizedResults.size)
 
-        return SearchAnswer(answer = answer, sources = results)
+        return SearchAnswer(answer = answer, sources = normalizedResults)
     }
 }

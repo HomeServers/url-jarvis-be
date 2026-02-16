@@ -4,10 +4,12 @@ import io.hunknownn.urljarvis.application.port.out.auth.OAuthClient
 import io.hunknownn.urljarvis.application.port.out.auth.OAuthUserInfo
 import io.hunknownn.urljarvis.domain.user.OAuthProvider
 import io.hunknownn.urljarvis.infrastructure.config.OAuthProperties
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.WebClientResponseException
 
 /**
  * OAuth2 Authorization Code Flow를 WebClient로 직접 구현한 어댑터.
@@ -20,6 +22,8 @@ class OAuthClientAdapter(
     private val webClient: WebClient,
     private val oAuthProperties: OAuthProperties
 ) : OAuthClient {
+
+    private val log = LoggerFactory.getLogger(javaClass)
 
     override fun getUserInfo(provider: OAuthProvider, code: String, redirectUri: String): OAuthUserInfo {
         val props = getProviderProperties(provider)
@@ -42,12 +46,17 @@ class OAuthClientAdapter(
             add("redirect_uri", redirectUri)
         }
 
-        val response = webClient.post()
-            .uri(props.tokenUri)
-            .body(BodyInserters.fromFormData(formData))
-            .retrieve()
-            .bodyToMono(Map::class.java)
-            .block() ?: throw RuntimeException("Failed to exchange token with ${provider.name}")
+        val response = try {
+            webClient.post()
+                .uri(props.tokenUri)
+                .body(BodyInserters.fromFormData(formData))
+                .retrieve()
+                .bodyToMono(Map::class.java)
+                .block() ?: throw RuntimeException("Failed to exchange token with ${provider.name}")
+        } catch (e: WebClientResponseException) {
+            log.error("Token exchange failed for ${provider.name}: ${e.statusCode} - ${e.responseBodyAsString}")
+            throw e
+        }
 
         return response["access_token"] as? String
             ?: throw RuntimeException("No access_token in response from ${provider.name}")

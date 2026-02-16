@@ -13,7 +13,7 @@ data class SearchResponse(
         val thumbnail: String?,
         val domain: String,
         val matchedContent: String,
-        val similarity: Double
+        val score: Double
     )
 
     companion object {
@@ -27,7 +27,7 @@ data class SearchResponse(
                     thumbnail = it.thumbnail,
                     domain = it.domain,
                     matchedContent = it.matchedChunkContent,
-                    similarity = it.similarity
+                    score = it.score
                 )
             }
         )

@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController
 class AuthController(
     private val authUseCase: AuthUseCase
 ) {
-    @PostMapping("/oauth/{provider}")
+    @PostMapping("/{provider}")
     fun oauthLogin(
         @PathVariable provider: String,
         @RequestBody @Valid request: OAuthLoginRequest
