@@ -46,16 +46,22 @@ class TextChunkingService(
             .filter { it.isNotBlank() }
     }
 
-    /** 이미지 태그, CDN URL, 연속 공백 등 임베딩에 불필요한 노이즈 제거 */
+    /** 임베딩에 불필요한 노이즈 제거: 이미지, 링크 URL, 광고, 마크다운 서식 등 */
     private fun cleanMarkdown(text: String): String {
         return text
-            .replace(Regex("!\\[.*?]\\(.*?\\)"), "")          // 이미지 태그: ![alt](url)
-            .replace(Regex("\\[\\s*]\\(.*?\\)"), "")           // 빈 링크: [](url)
-            .replace(Regex("https?://\\S*coupangcdn\\.com\\S*"), "") // 쿠팡 CDN URL
-            .replace(Regex("https?://\\S*\\.png\\S*"), "")     // .png URL
-            .replace(Regex("https?://\\S*\\.jpg\\S*"), "")     // .jpg URL
-            .replace(Regex("\\n{3,}"), "\n\n")                 // 연속 줄바꿈 정리
-            .replace(Regex(" {2,}"), " ")                      // 연속 공백 정리
+            .replace(Regex("!\\[.*?]\\(.*?\\)"), "")                // 이미지 태그: ![alt](url)
+            .replace(Regex("\\[\\s*]\\(.*?\\)"), "")                 // 빈 링크: [](url)
+            .replace(Regex("\\[([^\\]]*)]\\([^)]*\\)"), "$1")        // 마크다운 링크 → 텍스트만: [text](url) → text
+            .replace(Regex("https?://\\S+"), "")                     // 모든 URL 제거
+            .replace(Regex("\\\\{2,}"), "")                          // 이스케이프 백슬래시 제거
+            .replace(Regex("(?m)^.*광고.*제휴업체.*판매상품.*$"), "")   // 광고 문구 제거
+            .replace(Regex("(?m)^.*함께 비교하면 좋을 상품.*$"), "")    // 프로모션 문구 제거
+            .replace(Regex("(?m)^.*추천.*이런건 어때요.*$"), "")        // 추천 문구 제거
+            .replace(Regex("(?m)^.*오늘의 판매자 특가.*$"), "")         // 특가 문구 제거
+            .replace(Regex("\\*{2,}"), "")                           // 볼드 마크다운: **text** → text
+            .replace(Regex("(?<=\\S)_(?=\\S)"), "")                  // 이탤릭 마크다운: _text_ 중간 언더스코어 제거
+            .replace(Regex("\\n{3,}"), "\n\n")                       // 연속 줄바꿈 정리
+            .replace(Regex(" {2,}"), " ")                            // 연속 공백 정리
     }
 
     private fun splitLargeChunk(chunk: String): List<String> {
