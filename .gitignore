@@ -45,3 +45,7 @@ application-dev.yml
 
 ### Debug output ###
 crawl-debug/
+
+### Claude Code ###
+.claude/
+CLAUDE.md
