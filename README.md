@@ -2,6 +2,8 @@
 
 URL을 저장하면 자동으로 크롤링하고, 벡터 임베딩 기반으로 저장된 URL 내용을 검색할 수 있는 RAG 백엔드 서비스.
 
+Chrome Extension 단축키(`Ctrl+Shift+L` / `Cmd+Shift+L`)로 현재 탭 URL을 바로 저장할 수 있다.
+
 ## Tech Stack
 
 - **Language**: Kotlin 2.2 / Java 21
@@ -9,8 +11,9 @@ URL을 저장하면 자동으로 크롤링하고, 벡터 임베딩 기반으로 
 - **Database**: PostgreSQL 16 + pgvector
 - **Embedding**: OpenAI text-embedding-3-small (1536차원)
 - **LLM**: GPT-4o-mini
-- **Crawling**: Firecrawl API
+- **Crawling**: Firecrawl API (CAPTCHA/보안 페이지 자동 감지)
 - **Auth**: OAuth 2.0 (Google / Kakao / Naver) + JWT
+- **Client**: Chrome Extension (Manifest V3)
 
 ## Architecture
 
@@ -46,8 +49,8 @@ infrastructure/    # Config, Security
 ## Pipeline
 
 ```
-URL 저장 → Firecrawl 크롤링 → 마크다운 전처리 → 텍스트 청킹 → 임베딩 → pgvector 저장
-검색 쿼리 → 쿼리 임베딩 → 벡터 유사도 검색 → top-K 컨텍스트 → LLM 답변 생성
+URL 저장 → Firecrawl 크롤링 → CAPTCHA 감지 → 마크다운 전처리 → 텍스트 청킹 → 임베딩 → pgvector 저장
+검색 쿼리 → 쿼리 임베딩 → 하이브리드 검색(벡터+키워드 RRF) → top-K 컨텍스트 → LLM 답변 생성
 ```
 
 ## Local Development
@@ -76,6 +79,18 @@ kubectl apply -f k8s/service.yaml
 # Secret은 별도 생성 필요 (DB, JWT, API 키 등)
 ```
 
+## Chrome Extension
+
+`chrome-extension/` 디렉토리에 Manifest V3 기반 Chrome Extension이 포함되어 있다.
+
+- **단축키**: `Ctrl+Shift+L` (Mac: `Cmd+Shift+L`)로 현재 탭 URL 저장
+- **인증**: Google OAuth → JWT 자동 갱신
+- **설정**: 옵션 페이지에서 서버 URL 변경 가능
+
+```bash
+# 설치: chrome://extensions → 개발자 모드 → 압축해제된 확장 프로그램 로드 → chrome-extension/ 선택
+```
+
 ## Project Structure
 
 ```
@@ -85,6 +100,7 @@ url-jarvis/
 │   ├── application.yaml
 │   ├── application-prod.yaml
 │   └── db/migration/          # SQL 스키마
+├── chrome-extension/          # Chrome Extension (Manifest V3)
 ├── k8s/                       # K8s 매니페스트
 ├── Dockerfile
 └── build.gradle.kts
