@@ -19,6 +19,36 @@ class FirecrawlAdapter(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
+    companion object {
+        /** CAPTCHA/보안 검증 페이지에서 자주 등장하는 패턴 */
+        private val BLOCKED_CONTENT_PATTERNS = listOf(
+            // 영문 CAPTCHA/봇 검증
+            "security verification",
+            "please verify you are a human",
+            "verify that you are a real user",
+            "are you a robot",
+            "captcha",
+            "i'm not a robot",
+            "access denied",
+            "please complete the security",
+            "checking your browser",
+            "enable javascript and cookies",
+            "ray id",
+            // 한국어 CAPTCHA/봇 검증
+            "보안 검증",
+            "자동 등록 방지",
+            "로봇이 아닙니다",
+            "실제 사용자인지 확인",
+            "음성으로 안내되고 있습니다",
+            "접근이 거부되었습니다",
+            "스팸 방지를 위해",
+            "보안문자",
+        )
+
+        /** 패턴 중 2개 이상 매칭되면 차단 페이지로 판단하는 임계값 */
+        private const val BLOCKED_PATTERN_THRESHOLD = 2
+    }
+
     @Suppress("UNCHECKED_CAST")
     override fun crawl(url: String): CrawlResult {
         log.info("Firecrawl 요청 시작: {}", url)
@@ -75,6 +105,9 @@ class FirecrawlAdapter(
         val metadata = data["metadata"] as? Map<String, Any> ?: emptyMap()
         val markdown = data["markdown"] as? String ?: ""
 
+        // CAPTCHA/보안 검증 페이지 감지
+        detectBlockedContent(markdown, url)
+
         val ogImage = metadata["og:image"] as? String ?: metadata["ogImage"] as? String
         log.info("Firecrawl 완료: {} (title={}, ogImage={}, markdown={}자)", url, metadata["title"], ogImage != null, markdown.length)
 
@@ -84,5 +117,26 @@ class FirecrawlAdapter(
             description = metadata["description"] as? String,
             ogImage = ogImage
         )
+    }
+
+    /**
+     * 크롤링 결과가 CAPTCHA/보안 검증 페이지인지 감지한다.
+     * 차단 패턴이 임계값 이상 매칭되면 CrawlFailedException을 발생시킨다.
+     */
+    private fun detectBlockedContent(markdown: String, url: String) {
+        val lowerContent = markdown.lowercase()
+        val matchedPatterns = BLOCKED_CONTENT_PATTERNS.filter { it in lowerContent }
+
+        if (matchedPatterns.size >= BLOCKED_PATTERN_THRESHOLD) {
+            log.warn(
+                "CAPTCHA/보안 페이지 감지: url={}, 매칭 패턴={}, markdown 길이={}",
+                url, matchedPatterns, markdown.length
+            )
+            throw CrawlFailedException(
+                statusCode = 200,
+                responseBody = "BLOCKED_CONTENT_DETECTED: ${matchedPatterns.joinToString(", ")}",
+                message = "Blocked content detected for URL: $url"
+            )
+        }
     }
 }
