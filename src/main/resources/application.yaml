@@ -18,6 +18,9 @@ spring:
       hibernate:
         format_sql: true
 
+cors:
+  allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:3000,chrome-extension://*}
+
 url-jarvis:
   oauth:
     google:

@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "key": "rHJo4I1r7KDTOh3hqGbQ4xfHVxjRYH4uXiXTvhCkTWE=",
+  "name": "Link Mind",
+  "description": "Send current page URL to Link Mind server with a keyboard shortcut",
+  "version": "1.0.0",
+  "permissions": ["activeTab", "storage", "identity"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "options_page": "options.html",
+  "commands": {
+    "send-url": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+L",
+        "mac": "Command+Shift+L"
+      },
+      "description": "Send current tab URL to Link Mind"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "Link Mind",
+    "default_popup": "popup.html"
+  }
+}
