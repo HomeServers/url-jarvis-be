@@ -1,8 +1,7 @@
 {
   "manifest_version": 3,
-  "key": "rHJo4I1r7KDTOh3hqGbQ4xfHVxjRYH4uXiXTvhCkTWE=",
   "name": "Link Mind",
-  "description": "Send current page URL to Link Mind server with a keyboard shortcut",
+  "description": "Save any webpage URL to your Link Mind server instantly with a keyboard shortcut. Features Google OAuth login, automatic session management, and customizable server settings.",
   "version": "1.0.0",
   "permissions": ["activeTab", "storage", "identity"],
   "host_permissions": ["<all_urls>"],
